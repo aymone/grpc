@@ -21,6 +21,7 @@ import (
 func main() {
 	addr := ":6000"
 	clientAddr := fmt.Sprintf("localhost%s", addr)
+
 	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		log.Fatalf("failed to initializa TCP listen: %v", err)
@@ -28,7 +29,6 @@ func main() {
 	defer lis.Close()
 
 	go runGRPC(lis, handler.New())
-
 	runHTTP(clientAddr)
 }
 
@@ -40,11 +40,14 @@ func runGRPC(lis net.Listener, handler pb.SimpleServerServer) {
 
 	server := grpc.NewServer(
 		grpc.Creds(creds),
+		grpc.UnaryInterceptor(RecoveryInterceptor),
 		// grpc.UnaryInterceptor(AuthInterceptor),
 	)
+
 	pb.RegisterSimpleServerServer(server, handler)
 
 	log.Printf("gRPC Listening on %s\n", lis.Addr().String())
+
 	server.Serve(lis)
 }
 
@@ -63,6 +66,15 @@ func runHTTP(clientAddr string) {
 	}
 	log.Printf("HTTP Listening on %s\n", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
+}
+
+func RecoveryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered from", r)
+		}
+	}()
+	return handler(ctx, req)
 }
 
 func AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {

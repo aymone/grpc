@@ -8,7 +8,7 @@ gen-proto:
 		--grpc-gateway_out=logtostderr=true:.
 
 gen-server-tls:
-	openssl req -x509 -newkey rsa:4096 -keyout cmd/server/server-key.pem -out cmd/server/server-cert.pem -days 365 -nodes -subj '/CN=localhost'
+	openssl req -x509 -newkey rsa:4096 -keyout server/server-key.pem -out server/server-cert.pem -days 365 -nodes -subj '/CN=localhost'
 
 run-server:
 	go run cmd/server/main.go

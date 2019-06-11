@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	creds, err := credentials.NewClientTLSFromFile("cmd/server/server-cert.pem", "")
+	creds, err := credentials.NewClientTLSFromFile("server/server-cert.pem", "")
 	if err != nil {
 		log.Fatalf("cert load error: %s", err)
 	}
